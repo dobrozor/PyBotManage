@@ -1,9 +1,7 @@
 #!/bin/bash
 
 # Установка и обновление пакетов
-sudo apt update
-sudo apt upgrade -y
-sudo apt-get install -y openssh-server ufw python3.10-venv nano
+sudo apt-get install -y openssh-server ufw python3.8-venv nano
 
 # Настройка firewall
 sudo ufw enable
