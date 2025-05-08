@@ -1,9 +1,3 @@
-wget -O - https://raw.githubusercontent.com/dobrozor/PyBotManage/main/install.sh | bash
-
-wget -O bot.py https://raw.githubusercontent.com/dobrozor/PyBotManage/main/bot.py
-wget -O templates/index.html https://raw.githubusercontent.com/dobrozor/PyBotManage/main/templates/index.html
-
-
 #!/bin/bash
 
 # Автоматическая установка без вопросов
