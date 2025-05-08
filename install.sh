@@ -54,6 +54,25 @@ cd ~/bots/site
 wget -qO bot.py https://raw.githubusercontent.com/dobrozor/PyBotManage/main/bot.py
 wget -qO templates/index.html https://raw.githubusercontent.com/dobrozor/PyBotManage/main/templates/index.html
 
+
+# Systemd сервис
+echo -e "${ORANGE}[7/8] Настройка systemd сервиса...${NC}"
+sudo bash -c 'cat > /root/bots/systemd/site.service <<EOF
+[Unit]
+Description=WebSite PythonManager
+After=network.target
+
+[Service]
+User=root
+WorkingDirectory=/root/bots/site
+ExecStart=/root/bots/venv/bin/python3 /root/bots/site/bot.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+EOF'
+
 # Освобождение порта 80 и запуск сервиса
 echo -e "${ORANGE}[8/8] Запуск сервиса...${NC}"
 sudo kill -9 $(sudo lsof -t -i:80) 2>/dev/null || true
