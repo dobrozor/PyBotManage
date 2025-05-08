@@ -1,6 +1,8 @@
 #!/bin/bash
 
 # Установка и обновление пакетов
+sudo apt-get update
+sudo apt-get upgrade -y
 sudo apt-get install -y openssh-server ufw python3.8-venv nano git
 
 # Настройка firewall
