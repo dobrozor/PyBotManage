@@ -1,8 +1,6 @@
 #!/bin/bash
 
 # Установка и обновление пакетов
-sudo apt-get update
-sudo apt-get upgrade -y
 sudo apt-get install -y openssh-server ufw python3.8-venv nano git
 
 # Настройка firewall
@@ -23,8 +21,8 @@ source venv/bin/activate
 # Клонирование файлов из GitHub
 cd ~/bots/site
 # Замените ссылки на актуальные из вашего репозитория
-wget https://raw.githubusercontent.com/dobrozor/PyBotManage/main/bot.py
-wget https://raw.githubusercontent.com/dobrozor/PyBotManage/main/templates/index.html -P templates
+wget -O bot.py https://raw.githubusercontent.com/dobrozor/PyBotManage/main/bot.py
+wget -O templates/index.html https://raw.githubusercontent.com/dobrozor/PyBotManage/main/templates/index.html
 
 # Создание service файла
 cat <<EOF > ~/bots/systemd/site.service
