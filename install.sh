@@ -1,55 +1,68 @@
-#!/bin/bash
+wget -O - https://raw.githubusercontent.com/dobrozor/PyBotManage/main/install.sh | bash
 
-# Установка и обновление пакетов
-sudo apt-get update
-sudo apt-get upgrade -y
-sudo apt-get install -y openssh-server ufw python3.8-venv nano git
-
-# Настройка firewall
-echo "y" | sudo ufw enable
-sudo ufw allow 22
-sudo ufw allow 80
-sudo ufw allow 5000
-sudo ufw allow 443
-sudo ufw allow 8080
-
-# Создание директорий и виртуального окружения
-mkdir -p ~/bots/systemd
-mkdir -p ~/bots/site/templates
-cd ~/bots
-python3 -m venv venv
-source venv/bin/activate
-
-# Клонирование файлов из GitHub
-cd ~/bots/site
-# Замените ссылки на актуальные из вашего репозитория
 wget -O bot.py https://raw.githubusercontent.com/dobrozor/PyBotManage/main/bot.py
 wget -O templates/index.html https://raw.githubusercontent.com/dobrozor/PyBotManage/main/templates/index.html
 
-# Создание service файла
-cat <<EOF > ~/bots/systemd/site.service
+
+#!/bin/bash
+
+# Автоматическая установка без вопросов
+export DEBIAN_FRONTEND=noninteractive
+
+# Обновление и установка пакетов
+sudo apt-get update -y
+sudo apt-get upgrade -y
+sudo apt-get install -y openssh-server ufw nano git python3.8-venv python3-pip
+
+# Настройка firewall (автоматическое подтверждение)
+yes | sudo ufw enable
+sudo ufw allow 22/tcp  # SSH
+sudo ufw allow 80/tcp   # HTTP
+sudo ufw allow 443/tcp  # HTTPS
+sudo ufw allow 5000/tcp # Flask
+sudo ufw allow 8080/tcp # Альтернативный порт
+
+# Создание структуры проекта
+mkdir -p ~/bots/{systemd,site/templates}
+cd ~/bots
+
+# Виртуальное окружение
+python3.8 -m venv venv
+source venv/bin/activate
+
+# Загрузка файлов проекта
+cd ~/bots/site
+wget -qO bot.py https://raw.githubusercontent.com/dobrozor/PyBotManage/main/bot.py
+wget -qO templates/index.html https://raw.githubusercontent.com/dobrozor/PyBotManage/main/templates/index.html
+
+# Systemd сервис
+sudo bash -c 'cat > /etc/systemd/system/site.service <<EOF
 [Unit]
 Description=WebSite PythonManager
-After=syslog.target
 After=network.target
- 
+
 [Service]
-Type=simple
 User=root
 WorkingDirectory=/root/bots/site
 ExecStart=/root/bots/venv/bin/python3 /root/bots/site/bot.py
-RestartSec=5
 Restart=always
- 
+RestartSec=5
+
 [Install]
 WantedBy=multi-user.target
-EOF
+EOF'
 
-# Установка Python зависимостей
-pip install flask os-subprocess functools shutil
+# Права и сервис
+sudo chmod 644 /etc/systemd/system/site.service
+sudo systemctl daemon-reload
+sudo systemctl enable --now site.service
 
-# Настройка и запуск сервиса
-sudo systemctl enable /root/bots/systemd/site.service
-sudo systemctl start site
+# Установка зависимостей
+pip install flask shutil
 
-echo "Твой сайт готов! Переходи по айпи адресу твоего сервера."
+# Получение IP
+IP=$(hostname -I | awk '{print $1}')
+echo -e "\n\033[32mУстановка завершена!\033[0m"
+echo -e "Сайт доступен по адресу:"
+echo -e "HTTP: \033[34mhttp://$IP\033[0m"
+echo -e "HTTP: \033[34mhttp://$IP:5000\033[0m"
