@@ -6,7 +6,7 @@ sudo apt-get upgrade -y
 sudo apt-get install -y openssh-server ufw python3.8-venv nano git
 
 # Настройка firewall
-sudo ufw enable
+echo "y" | sudo ufw enable
 sudo ufw allow 22
 sudo ufw allow 80
 sudo ufw allow 5000
