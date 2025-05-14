@@ -192,6 +192,51 @@
                 order: 2;
             }
         }
+
+        .upload-area {
+    border: 2px dashed #ccc;
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+    margin-bottom: 20px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.upload-area:hover {
+    border-color: var(--accent);
+    background: rgba(255, 123, 0, 0.05);
+}
+
+.upload-area.dragover {
+    border-color: var(--accent);
+    background: rgba(255, 123, 0, 0.1);
+}
+
+.file-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    margin-bottom: 5px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 4px;
+}
+
+.file-item:hover {
+    background: rgba(255,255,255,0.1);
+}
+
+.delete-file-btn {
+    color: #dc3545;
+    cursor: pointer;
+    padding: 2px 5px;
+    border-radius: 3px;
+}
+
+.delete-file-btn:hover {
+    background: rgba(220, 53, 69, 0.2);
+}
     </style>
 </head>
 <body>
@@ -265,6 +310,11 @@
                                     <i class="fas fa-trash me-2"></i>Удалить проект
                                 </button>
                             </div>
+                            <div class="upload-area" id="upload-area">
+    <i class="fas fa-cloud-upload-alt fa-2x mb-2"></i>
+    <p>Перетащите файлы сюда или кликните для выбора</p>
+    <input type="file" id="file-input" style="display: none;" multiple>
+</div>
 
                             <hr class="my-4">
 
@@ -397,61 +447,97 @@
         }
 
         function renderFileTree(structure, container, depth = 0) {
-            container.innerHTML = '';
-            const ul = document.createElement('ul');
+    container.innerHTML = '';
+    const ul = document.createElement('ul');
 
-            structure.forEach(item => {
-                const li = document.createElement('li');
-                li.className = item.type === 'directory' ? 'folder' : 'file';
-                li.style.paddingLeft = `${depth * 15}px`;
-                li.innerHTML = `<span>${item.name}</span>`;
+    structure.forEach(item => {
+        const li = document.createElement('li');
+        li.className = item.type === 'directory' ? 'folder' : 'file';
+        li.style.paddingLeft = `${depth * 15}px`;
 
-                if (item.type === 'directory') {
-                    li.classList.add('collapsed');
-                    const childUl = document.createElement('ul');
-                    childUl.style.display = 'none';
+        const itemContainer = document.createElement('div');
+        itemContainer.className = 'd-flex justify-content-between align-items-center w-100';
 
-                    li.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        li.classList.toggle('collapsed');
-                        childUl.style.display = childUl.style.display === 'none' ? 'block' : 'none';
-                    });
+        const nameSpan = document.createElement('span');
+        nameSpan.textContent = item.name;
+        nameSpan.style.flexGrow = '1';
+        nameSpan.style.cursor = 'pointer';
 
-                    if (item.children) {
-                        renderFileTree(item.children, childUl, depth + 1);
-                        li.appendChild(childUl);
-                    }
-                } else {
-                    li.addEventListener('click', () => {
-                        const ext = item.name.split('.').pop().toLowerCase();
-                        if (['jpg', 'jpeg', 'png', 'gif'].includes(ext)) {
-                            document.getElementById('image-preview').src = `/api/project/${currentProject}/file/${encodeURIComponent(item.name)}`;
-                            document.getElementById('image-preview').onerror = function() {
-                                this.style.display = 'none';
-                                alert('Ошибка загрузки изображения');
-                            };
-                            document.getElementById('editor-container').style.display = 'none';
-                            document.getElementById('image-preview').style.display = 'block';
-                        } else {
-                            fetch(`/api/project/${currentProject}/${item.name}`)
-                                .then(response => {
-                                    if (!response.ok) throw new Error('File load error');
-                                    return response.json();
-                                })
-                                .then(data => loadFile(currentProject, item.name, data.content))
-                                .catch(error => {
-                                    console.error('Ошибка загрузки файла:', error);
-                                    alert('Ошибка загрузки файла');
-                                });
+        itemContainer.appendChild(nameSpan);
+
+        if (item.type === 'file') {
+            const deleteBtn = document.createElement('span');
+            deleteBtn.className = 'delete-file-btn ms-2';
+            deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
+            deleteBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (confirm(`УДАЛИТЬ ФАЙЛ ${item.name}?`)) {
+                    fetch(`/api/project/${currentProject}/delete_file`, {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({filename: item.name})
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            loadProject(currentProject);
                         }
                     });
                 }
+            });
+            itemContainer.appendChild(deleteBtn);
+        }
 
-                ul.appendChild(li);
+        li.appendChild(itemContainer);
+
+        if (item.type === 'directory') {
+            li.classList.add('collapsed');
+            const childUl = document.createElement('ul');
+            childUl.style.display = 'none';
+
+            li.addEventListener('click', (e) => {
+                if (e.target === nameSpan || e.target === li) {
+                    e.stopPropagation();
+                    li.classList.toggle('collapsed');
+                    childUl.style.display = childUl.style.display === 'none' ? 'block' : 'none';
+                }
             });
 
-            container.appendChild(ul);
+            if (item.children) {
+                renderFileTree(item.children, childUl, depth + 1);
+                li.appendChild(childUl);
+            }
+        } else {
+            nameSpan.addEventListener('click', () => {
+                const ext = item.name.split('.').pop().toLowerCase();
+                if (['jpg', 'jpeg', 'png', 'gif'].includes(ext)) {
+                    document.getElementById('image-preview').src = `/api/project/${currentProject}/${encodeURIComponent(item.name)}`;
+                    document.getElementById('image-preview').onerror = function() {
+                        this.style.display = 'none';
+                        alert('Ошибка загрузки изображения');
+                    };
+                    document.getElementById('editor-container').style.display = 'none';
+                    document.getElementById('image-preview').style.display = 'block';
+                } else {
+                    fetch(`/api/project/${currentProject}/${item.name}`)
+                        .then(response => {
+                            if (!response.ok) throw new Error('File load error');
+                            return response.json();
+                        })
+                        .then(data => loadFile(currentProject, item.name, data.content))
+                        .catch(error => {
+                            console.error('Ошибка загрузки файла:', error);
+                            alert('Ошибка загрузки файла');
+                        });
+                }
+            });
         }
+
+        ul.appendChild(li);
+    });
+
+    container.appendChild(ul);
+}
 
         function loadProject(projectName) {
             currentProject = projectName;
@@ -518,6 +604,66 @@
             initEditor();
             updateUI(false);
             checkAuth();
+
+            // File upload handlers
+const uploadArea = document.getElementById('upload-area');
+const fileInput = document.getElementById('file-input');
+
+uploadArea.addEventListener('click', () => fileInput.click());
+
+fileInput.addEventListener('change', (e) => {
+    if (e.target.files.length > 0 && currentProject) {
+        const formData = new FormData();
+        for (let i = 0; i < e.target.files.length; i++) {
+            formData.append('file', e.target.files[i]);
+        }
+
+        fetch(`/api/project/${currentProject}/upload`, {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                loadProject(currentProject);
+                fileInput.value = '';
+            }
+        });
+    }
+});
+
+// Drag and drop handlers
+uploadArea.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    uploadArea.classList.add('dragover');
+});
+
+uploadArea.addEventListener('dragleave', () => {
+    uploadArea.classList.remove('dragover');
+});
+
+uploadArea.addEventListener('drop', (e) => {
+    e.preventDefault();
+    uploadArea.classList.remove('dragover');
+
+    if (e.dataTransfer.files.length > 0 && currentProject) {
+        const formData = new FormData();
+        for (let i = 0; i < e.dataTransfer.files.length; i++) {
+            formData.append('file', e.dataTransfer.files[i]);
+        }
+
+        fetch(`/api/project/${currentProject}/upload`, {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                loadProject(currentProject);
+            }
+        });
+    }
+});
 
             document.getElementById('login-btn').addEventListener('click', () => {
                 const username = document.getElementById('username').value;
