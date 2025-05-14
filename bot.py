@@ -1,5 +1,7 @@
 from flask import Flask, render_template, request, jsonify, session, send_file
 import os
+import flask
+from werkzeug.utils import secure_filename
 import subprocess
 from functools import wraps
 import shutil
@@ -12,21 +14,21 @@ from threading import Thread, Lock
 import queue
 
 app = Flask(__name__, template_folder='templates')
-app.secret_key = '1020315'
+app.secret_key = '123456789' #Секретный ключ можно встаивть любой ваш код
 BASE_DIR = '/root/bots'
 SCRIPTS_DIR = BASE_DIR
 VENV_DIR = os.path.join(BASE_DIR, 'venv')
 SYSTEMD_DIR = '/root/bots/systemd'
 
 # Настройки аутентификации
-USERNAME = 'dobrozor'
-PASSWORD = 'cvbn765431'
+USERNAME = 'Admin' #Редактировать для сайта
+PASSWORD = 'Admin' 
 
 # Конфигурация SSH
-SSH_HOST = '37.220.86.79'
-SSH_PORT = 22
-SSH_USERNAME = 'root'
-SSH_PASSWORD = 'cvbn765431'
+SSH_HOST = 'АПЙИ_МАШИНЫ'
+SSH_PORT = 22 # Порт для вдс
+SSH_USERNAME = 'ИМЯ_РУТА_ВДС'
+SSH_PASSWORD = 'SSH_ПАРОЛЬ'
 
 ssh_sessions = {}
 output_queues = {}
@@ -475,6 +477,44 @@ def api_project_structure(project_name):
         return structure
 
     return jsonify({'structure': get_structure(project_path)})
+
+
+@app.route('/api/project/<project_name>/upload', methods=['POST'])
+@login_required
+def api_upload_file(project_name):
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file part'}), 400
+
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({'error': 'No selected file'}), 400
+
+    project_path = os.path.join(SCRIPTS_DIR, project_name)
+    if not os.path.exists(project_path):
+        return jsonify({'error': 'Project not found'}), 404
+
+    filename = secure_filename(file.filename)
+    file.save(os.path.join(project_path, filename))
+    return jsonify({'success': True, 'filename': filename})
+
+
+@app.route('/api/project/<project_name>/delete_file', methods=['POST'])
+@login_required
+def api_delete_file(project_name):
+    data = request.get_json()
+    filename = data.get('filename')
+    if not filename:
+        return jsonify({'error': 'Filename not provided'}), 400
+
+    file_path = os.path.join(SCRIPTS_DIR, project_name, filename)
+    if not os.path.exists(file_path):
+        return jsonify({'error': 'File not found'}), 404
+
+    try:
+        os.remove(file_path)
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=80, debug=True)
