@@ -27,7 +27,7 @@ PASSWORD = 'Admin'
 # Конфигурация SSH
 SSH_HOST = 'АПЙИ_МАШИНЫ'
 SSH_PORT = 22 # Порт для вдс
-SSH_USERNAME = 'ИМЯ_РУТА_ВДС'
+SSH_USERNAME = 'ИМЯ_ВАШЕГО_SSH'
 SSH_PASSWORD = 'SSH_ПАРОЛЬ'
 
 ssh_sessions = {}
