@@ -53,6 +53,7 @@ echo -e "${ORANGE}[6/8] Загрузка файлов проекта...${NC}"
 cd ~/bots/site
 wget -qO bot.py https://raw.githubusercontent.com/dobrozor/PyBotManage/main/bot.py
 wget -qO templates/index.html https://raw.githubusercontent.com/dobrozor/PyBotManage/main/templates/index.html
+wget -qO templates/terminal.html https://raw.githubusercontent.com/dobrozor/PyBotManage/main/templates/terminal.html
 
 
 # Systemd сервис
