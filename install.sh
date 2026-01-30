@@ -8,13 +8,15 @@ ORANGE='\033[0;33m'
 GREEN='\033[0;32m'
 NC='\033[0m' # No Color
 
+
 # Логотип PBManager
 echo -e "${ORANGE}"
-echo -e " ____  ____  __  __       _           _"
-echo -e "|  _ \| __ )|  \/  | __ _| |_ ___ _ __| |__   ___ _ __"
-echo -e "| |_) |  _ \| |\/| |/ _\` | __/ _ \ '__| '_ \ / _ \ '__|"
-echo -e "|  __/| |_) | |  | | (_| | ||  __/ |  | | | |  __/ |"
-echo -e "|_|   |____/|_|  |_|\__,_|\__\___|_|  |_| |_|\___|_|"
+echo -e "██████╗░██████╗░███╗░░░███╗░█████╗░███╗░░██╗░█████╗░░██████╗░███████╗██████╗░"
+echo -e "██╔══██╗██╔══██╗████╗░████║██╔══██╗████╗░██║██╔══██╗██╔════╝░██╔════╝██╔══██╗"
+echo -e "██████╔╝██████╦╝██╔████╔██║███████║██╔██╗██║███████║██║░░██╗░█████╗░░██████╔╝"
+echo -e "██╔═══╝░██╔══██╗██║╚██╔╝██║██╔══██║██║╚████║██╔══██║██║░░╚██╗██╔══╝░░██╔══██╗"
+echo -e "██║░░░░░██████╦╝██║░╚═╝░██║██║░░██║██║░╚███║██║░░██║╚██████╔╝███████╗██║░░██║"
+echo -e "╚═╝░░░░░╚═════╝░╚═╝░░░░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝░░╚═╝░╚═════╝░╚══════╝╚═╝░░╚═╝"
 echo -e "${NC}"
 echo -e "${ORANGE}=== PyBot Manager Installation ===${NC}"
 echo -e ""
@@ -23,7 +25,7 @@ echo -e ""
 echo -e "${ORANGE}[1/8] Обновление пакетов...${NC}"
 sudo apt-get update -y
 sudo apt-get upgrade -y
-sudo apt-get install -y openssh-server ufw nano git python3.8-venv python3-pip
+sudo apt-get install -y openssh-server ufw nano git python3.10-venv python3-pip
 
 # Настройка firewall
 echo -e "${ORANGE}[2/8] Настройка firewall...${NC}"
@@ -41,7 +43,7 @@ cd ~/bots
 
 # Виртуальное окружение
 echo -e "${ORANGE}[4/8] Настройка виртуального окружения...${NC}"
-python3.8 -m venv venv
+python3.10 -m venv venv
 source venv/bin/activate
 
 # Установка Flask и зависимостей
@@ -51,10 +53,22 @@ pip install flask paramiko flask_socketio
 # Загрузка файлов проекта
 echo -e "${ORANGE}[6/8] Загрузка файлов проекта...${NC}"
 cd ~/bots/site
+# python
 wget -qO bot.py https://raw.githubusercontent.com/dobrozor/PyBotManage/main/bot.py
-wget -qO templates/index.html https://raw.githubusercontent.com/dobrozor/PyBotManage/main/templates/index.html
+wget -qO auth.py https://raw.githubusercontent.com/dobrozor/PyBotManage/main/auth.py
+wget -qO manager.py https://raw.githubusercontent.com/dobrozor/PyBotManage/main/manager.py
+# other
+wget -qO templates/base.html https://raw.githubusercontent.com/dobrozor/PyBotManage/main/templates/base.html
+wget -qO templates/dashboard.html https://raw.githubusercontent.com/dobrozor/PyBotManage/main/templates/dashboard.html
+wget -qO templates/files.html https://raw.githubusercontent.com/dobrozor/PyBotManage/main/templates/files.html
+wget -qO templates/login.html https://raw.githubusercontent.com/dobrozor/PyBotManage/main/templates/login.html
+wget -qO templates/register.html https://raw.githubusercontent.com/dobrozor/PyBotManage/main/templates/register.html
 wget -qO templates/terminal.html https://raw.githubusercontent.com/dobrozor/PyBotManage/main/templates/terminal.html
 
+wget -qO data/users.json https://raw.githubusercontent.com/dobrozor/PyBotManage/main/data/users.json
+
+wget -qO static/css/style.css https://raw.githubusercontent.com/dobrozor/PyBotManage/main/static/css/style.css
+wget -qO static/js/script.js https://raw.githubusercontent.com/dobrozor/PyBotManage/main/static/js/script.js
 
 # Systemd сервис
 echo -e "${ORANGE}[7/8] Настройка systemd сервиса...${NC}"
@@ -110,3 +124,5 @@ echo -e "Остановка: sudo systemctl stop site.service   sudo kill -9 $(s
 echo -e "Отключить для повторного запуска: sudo kill -9 $(sudo lsof -t -i:80)"
 echo -e "Статус:    sudo systemctl status site.service"
 echo -e "Логи:      journalctl -u site.service -f${NC}"
+
+Важно чтоб все проекты сразу же запускались, а если есть ошибки они выводились сразу в определенном окне. Так же для проекта нужны кнопки старт, стоп, перезагрузка и в случае ошибок они так же должны выводиться 
