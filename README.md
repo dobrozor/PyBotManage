@@ -1,4 +1,4 @@
-# Pybotmanage
+# PyBotManager
 Сайт Python для просто управление скриптами на VPS
 
  ## Что это?
