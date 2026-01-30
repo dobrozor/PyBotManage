@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% block title %}Регистрация администратора{% endblock %}
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="auth-header">
+            <h2>🔐 Первая регистрация</h2>
+            <p>Создайте пароль администратора для доступа к панели управления</p>
+        </div>
+        
+        <form method="POST" class="auth-form" id="registerForm">
+            <div class="form-group">
+                <label for="password">
+                    <span class="label-icon">🔑</span>
+                    Пароль администратора
+                </label>
+                <input 
+                    type="password" 
+                    id="password" 
+                    name="password" 
+                    required 
+                    minlength="8"
+                    placeholder="Введите пароль (минимум 8 символов)"
+                >
+                <div class="password-strength" id="passwordStrength"></div>
+            </div>
+            
+            <div class="form-group">
+                <label for="confirm">
+                    <span class="label-icon">✅</span>
+                    Подтвердите пароль
+                </label>
+                <input 
+                    type="password" 
+                    id="confirm" 
+                    name="confirm" 
+                    required 
+                    minlength="8"
+                    placeholder="Повторите пароль"
+                >
+            </div>
+            
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary btn-large">
+                    <span class="btn-icon">🚀</span>
+                    Зарегистрировать
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Проверка силы пароля
+    document.getElementById('password').addEventListener('input', function(e) {
+        const password = e.target.value;
+        const strengthBar = document.getElementById('passwordStrength');
+        
+        if (!password) {
+            strengthBar.innerHTML = '';
+            return;
+        }
+        
+        let strength = 0;
+        if (password.length >= 8) strength++;
+        if (password.length >= 12) strength++;
+        if (/[A-Z]/.test(password)) strength++;
+        if (/[0-9]/.test(password)) strength++;
+        if (/[^A-Za-z0-9]/.test(password)) strength++;
+        
+        let color, text;
+        if (strength <= 2) {
+            color = '#ef476f';
+            text = 'Слабый пароль';
+        } else if (strength <= 4) {
+            color = '#ffd166';
+            text = 'Средний пароль';
+        } else {
+            color = '#06d6a0';
+            text = 'Сильный пароль';
+        }
+        
+        strengthBar.innerHTML = `<div style="background: ${color}; padding: 5px; border-radius: 3px; margin-top: 5px;">${text}</div>`;
+    });
+    
+    // Проверка совпадения паролей
+    document.getElementById('registerForm').addEventListener('submit', function(e) {
+        const password = document.getElementById('password').value;
+        const confirm = document.getElementById('confirm').value;
+        
+        if (password !== confirm) {
+            e.preventDefault();
+            alert('Пароли не совпадают!');
+            return false;
+        }
+        
+        if (password.length < 8) {
+            e.preventDefault();
+            alert('Пароль должен содержать не менее 8 символов');
+            return false;
+        }
+    });
+</script>
+{% endblock %}

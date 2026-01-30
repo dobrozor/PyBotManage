@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Авторизация{% endblock %}
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="auth-header">
+            <h2>🔐 Вход в систему</h2>
+            <p>Введите пароль администратора для доступа к панели управления</p>
+        </div>
+
+        <form method="POST" class="auth-form">
+            <div class="form-group">
+                <label for="password">
+                    <span class="label-icon">🔑</span>
+                    Пароль администратора
+                </label>
+                <input
+                    type="password"
+                    id="password"
+                    name="password"
+                    required
+                    placeholder="Введите ваш пароль"
+                    autofocus
+                >
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary btn-large">
+                    <span class="btn-icon">🔓</span>
+                    Войти в систему
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Показать пароль по клику на иконку
+    document.querySelector('.label-icon').addEventListener('click', function() {
+        const passwordInput = document.getElementById('password');
+        passwordInput.type = passwordInput.type === 'password' ? 'text' : 'password';
+    });
+</script>
+{% endblock %}

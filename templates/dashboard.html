@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+{% block title %}Панель управления{% endblock %}
+{% block content %}
+<div class="dashboard">
+    <div class="dashboard-header">
+        <h2>📁 Мои проекты</h2>
+        <button class="btn btn-primary" onclick="toggleCreateForm()">
+            <span class="btn-icon">➕</span>
+            Создать проект
+        </button>
+    </div>
+
+    <!-- Форма создания проекта -->
+    <div id="create-form" class="create-project-form" style="display:none;">
+        <div class="form-card">
+            <h3>Создание нового проекта</h3>
+            <form method="POST" action="{{ url_for('create_project') }}">
+                <div class="form-group">
+                    <label for="project-name">Имя проекта:</label>
+                    <input
+                        type="text"
+                        id="project-name"
+                        name="name"
+                        placeholder="my_project или my-bot"
+                        required
+                        pattern="^[a-zA-Z0-9_-]+$"
+                        title="Только буквы, цифры, дефисы и подчеркивания"
+                    >
+                    <small class="form-hint">Имя может содержать буквы, цифры, дефисы (-) и подчеркивания (_)</small>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-success">
+                        <span class="btn-icon">✅</span>
+                        Создать
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="toggleCreateForm()">
+                        <span class="btn-icon">❌</span>
+                        Отмена
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Список проектов -->
+    {% if projects|length == 0 %}
+        <div class="empty-state">
+            <div class="empty-icon">📁</div>
+            <h3>У вас пока нет проектов</h3>
+            <p>Создайте первый проект, чтобы начать работу</p>
+            <button class="btn btn-primary" onclick="toggleCreateForm()">
+                <span class="btn-icon">➕</span>
+                Создать проект
+            </button>
+        </div>
+    {% else %}
+        <div class="projects-grid">
+            {% for project in projects %}
+            <div class="project-card">
+                <div class="project-card-header">
+                    <h3 class="project-name">{{ project }}</h3>
+                    <span class="status status-{{ statuses[project] }}">{{ statuses[project] }}</span>
+                </div>
+
+                <div class="project-card-body">
+                    <p class="project-description">
+                        Проект на Python с управлением через systemd
+                    </p>
+                </div>
+
+                <div class="project-card-footer">
+                    <a href="{{ url_for('project_files', name=project) }}" class="btn btn-small btn-files">
+                        <span class="btn-icon">📄</span>
+                        Файлы
+                    </a>
+
+                    <div class="control-buttons">
+                        <form method="POST" action="{{ url_for('control_project', name=project) }}" class="inline-form">
+                            <input type="hidden" name="action" value="start">
+                            <button type="submit" class="btn btn-small btn-start" title="Запустить проект">
+                                <span class="btn-icon">▶️</span>
+                            </button>
+                        </form>
+
+                        <form method="POST" action="{{ url_for('control_project', name=project) }}" class="inline-form">
+                            <input type="hidden" name="action" value="stop">
+                            <button type="submit" class="btn btn-small btn-stop" title="Остановить проект">
+                                <span class="btn-icon">⏹️</span>
+                            </button>
+                        </form>
+
+                        <form method="POST" action="{{ url_for('control_project', name=project) }}" class="inline-form">
+                            <input type="hidden" name="action" value="restart">
+                            <button type="submit" class="btn btn-small btn-restart" title="Перезапустить проект">
+                                <span class="btn-icon">🔄</span>
+                            </button>
+                        </form>
+                    </div>
+
+                    <form method="POST" action="{{ url_for('delete_project', name=project) }}"
+                          class="inline-form delete-form"
+                          onsubmit="return confirmDelete('{{ project }}')">
+                        <button type="submit" class="btn btn-small btn-delete" title="Удалить проект">
+                            <span class="btn-icon">🗑️</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+</div>
+
+<script>
+    function toggleCreateForm() {
+        const form = document.getElementById('create-form');
+        form.style.display = form.style.display === 'none' ? 'block' : 'none';
+    }
+
+    function confirmDelete(projectName) {
+        return confirm(`Вы уверены, что хотите удалить проект "${projectName}"?\n\nВсе файлы проекта будут безвозвратно удалены!`);
+    }
+</script>
+{% endblock %}

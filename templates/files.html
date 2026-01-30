@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+{% block title %}Проект: {{ project_name }}{% endblock %}
+{% block content %}
+<div class="project-page">
+    <div class="project-header">
+        <div class="project-title">
+            <h2>📂 Проект: {{ project_name }}</h2>
+            <span class="status-badge status-{{ status }}">{{ status }}</span>
+        </div>
+
+        <div class="project-actions">
+            <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">
+                <span class="btn-icon">←</span>
+                Назад к проектам
+            </a>
+
+            <div class="control-group">
+                <form method="POST" action="{{ url_for('control_project', name=project_name) }}" class="inline-form">
+                    <input type="hidden" name="action" value="start">
+                    <button type="submit" class="btn btn-start">
+                        <span class="btn-icon">▶️</span>
+                        Старт
+                    </button>
+                </form>
+
+                <form method="POST" action="{{ url_for('control_project', name=project_name) }}" class="inline-form">
+                    <input type="hidden" name="action" value="stop">
+                    <button type="submit" class="btn btn-stop">
+                        <span class="btn-icon">⏹️</span>
+                        Стоп
+                    </button>
+                </form>
+
+                <form method="POST" action="{{ url_for('control_project', name=project_name) }}" class="inline-form">
+                    <input type="hidden" name="action" value="restart">
+                    <button type="submit" class="btn btn-restart">
+                        <span class="btn-icon">🔄</span>
+                        Перезагрузить
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="content-grid">
+        <!-- Левая панель: файлы -->
+        <div class="files-panel">
+            <div class="panel-header">
+                <h3>📄 Файлы проекта</h3>
+                <div class="upload-form">
+                    <form method="POST" action="{{ url_for('upload_file', name=project_name) }}"
+                          enctype="multipart/form-data">
+                        <input type="file" name="file" id="file-input" required hidden>
+                        <label for="file-input" class="btn btn-upload">
+                            <span class="btn-icon">⬆️</span>
+                            Загрузить
+                        </label>
+                        <button type="submit" class="btn btn-primary btn-upload-submit">Отправить</button>
+                    </form>
+                </div>
+            </div>
+
+            {% if files|length == 0 %}
+                <div class="empty-files">
+                    <div class="empty-icon">📄</div>
+                    <p>В проекте нет файлов</p>
+                    <small>Загрузите файл или создайте main.py</small>
+                </div>
+            {% else %}
+                <div class="files-list">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Файл</th>
+                                <th>Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for file in files %}
+                            <tr class="{% if file == editing_file %}editing{% endif %}">
+                                <td>
+                                    {% if file == editing_file %}
+                                        <strong>✏️ {{ file }}</strong>
+                                    {% else %}
+                                        {{ file }}
+                                    {% endif %}
+                                </td>
+                                <td class="actions">
+                                    <a href="{{ url_for('view_file', name=project_name, filename=file) }}"
+                                       class="btn btn-small btn-edit"
+                                       title="Редактировать">
+                                        <span class="btn-icon">✏️</span>
+                                    </a>
+
+                                    <form method="POST"
+                                          action="{{ url_for('delete_file', name=project_name, filename=file) }}"
+                                          class="inline-form"
+                                          onsubmit="return confirm('Удалить файл \"{{ file }}\"?')">
+                                        <button type="submit" class="btn btn-small btn-delete" title="Удалить">
+                                            <span class="btn-icon">🗑️</span>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Правая панель: редактор или логи -->
+        <div class="editor-panel">
+            {% if editing_file %}
+                <div class="editor-container">
+                    <div class="editor-header">
+                        <h3>📝 Редактирование: {{ editing_file }}</h3>
+                        <div class="editor-actions">
+                            <form method="POST" action="{{ url_for('save_file', name=project_name, filename=editing_file) }}">
+                                <button type="submit" class="btn btn-success">
+                                    <span class="btn-icon">💾</span>
+                                    Сохранить
+                                </button>
+                            </form>
+                            <a href="{{ url_for('project_files', name=project_name) }}" class="btn btn-secondary">
+                                Отмена
+                            </a>
+                        </div>
+                    </div>
+
+                    <form method="POST" action="{{ url_for('save_file', name=project_name, filename=editing_file) }}">
+                        <textarea name="content" class="code-editor">{{ file_content }}</textarea>
+                    </form>
+                </div>
+            {% else %}
+                <div class="logs-container">
+                    <div class="logs-header">
+                        <h3>📋 Логи выполнения</h3>
+                        <button class="btn btn-small btn-refresh" onclick="refreshLogs()">
+                            <span class="btn-icon">🔄</span>
+                            Обновить
+                        </button>
+                    </div>
+
+                    <pre id="logs" class="logs-content">{{ logs }}</pre>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+    // Автообновление логов
+    setupLogUpdater('{{ project_name }}');
+    setupStatusUpdater('{{ project_name }}');
+
+    function refreshLogs() {
+        fetch(`/project/{{ project_name }}/logs`)
+            .then(response => response.json())
+            .then(data => {
+                const logsElement = document.getElementById('logs');
+                if (logsElement && data.logs) {
+                    logsElement.textContent = data.logs;
+                    logsElement.scrollTop = logsElement.scrollHeight;
+                }
+            });
+    }
+
+    // Обработка загрузки файла
+    document.getElementById('file-input')?.addEventListener('change', function(e) {
+        if (e.target.files.length > 0) {
+            const fileName = e.target.files[0].name;
+            if (confirm(`Загрузить файл "${fileName}"?`)) {
+                e.target.parentElement.submit();
+            }
+        }
+    });
+</script>
+{% endblock %}
