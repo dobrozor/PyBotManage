@@ -48,7 +48,7 @@ source venv/bin/activate
 
 # Установка Flask и зависимостей
 echo -e "${ORANGE}[5/8] Установка зависимостей Python...${NC}"
-pip install flask paramiko flask_socketio
+pip install flask paramiko flask_socketio flask_login
 
 # Загрузка файлов проекта
 echo -e "${ORANGE}[6/8] Загрузка файлов проекта...${NC}"
