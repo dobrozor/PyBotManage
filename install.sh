@@ -23,8 +23,8 @@ echo -e ""
 
 # Обновление и установка пакетов
 echo -e "${ORANGE}[1/8] Обновление пакетов...${NC}"
-sudo apt-get update -y
-sudo apt-get upgrade -y
+#sudo apt-get update -y
+#sudo apt-get upgrade -y
 sudo apt-get install -y openssh-server ufw nano git python3.10-venv python3-pip
 
 # Настройка firewall
