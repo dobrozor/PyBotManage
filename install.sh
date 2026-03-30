@@ -43,7 +43,7 @@ cd ~/bots
 
 # Виртуальное окружение
 echo -e "${ORANGE}[4/8] Настройка виртуального окружения...${NC}"
-python3.10 -m venv venv
+python3 -m venv venv
 source venv/bin/activate
 
 # Установка Flask и зависимостей
